@@ -48,44 +48,43 @@ class DriveController extends Controller
         ], 201);
     }
 
-  public function destroyFile(Request $request)
-{
-    $request->validate([
-        'file_id' => 'required|integer|exists:files,id',
-    ]);
+    public function destroyFile(Request $request)
+    {
+        $request->validate([
+            'file_id' => 'required|integer|exists:files,id',
+        ]);
 
-    try {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        // Find file that belongs to this user
-        $file = File::where('id', $request->file_id)
-                    ->where('user_id', $user->id)
-                    ->first();
+            // Find file that belongs to this user
+            $file = File::where('id', $request->file_id)
+                ->where('user_id', $user->id)
+                ->first();
 
-        if (!$file) {
+            if (!$file) {
+                return response()->json([
+                    'error' => 'File not found or unauthorized'
+                ], 404);
+            }
+
+            // Delete file from storage (public disk)
+            if (Storage::disk('public')->exists($file->path)) {
+                Storage::disk('public')->delete($file->path);
+            }
+
+            // Delete record from database
+            $file->delete();
+
             return response()->json([
-                'error' => 'File not found or unauthorized'
-            ], 404);
+                'message' => 'File deleted successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Delete failed: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Delete file from storage (public disk)
-        if (Storage::disk('public')->exists($file->path)) {
-            Storage::disk('public')->delete($file->path);
-        }
-
-        // Delete record from database
-        $file->delete();
-
-        return response()->json([
-            'message' => 'File deleted successfully'
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => 'Delete failed: ' . $e->getMessage()
-        ], 500);
     }
-}
 
     public function createFolder(Request $request)
     {
@@ -110,28 +109,27 @@ class DriveController extends Controller
 
 
     public function destroyFolder(Request $request)
-{
-    $request->validate([
-        'folder_id' => 'required|integer|exists:folders,id',
-    ]);
+    {
+        $request->validate([
+            'folder_id' => 'required|integer|exists:folders,id',
+        ]);
 
-    $user = $request->user();
+        $user = $request->user();
 
-    $folder = \App\Models\Folder::where('id', $request->folder_id)
-                ->where('user_id', $user->id)
-                ->first();
+        $folder = \App\Models\Folder::where('id', $request->folder_id)
+            ->where('user_id', $user->id)
+            ->first();
 
-    if (!$folder) {
+        if (!$folder) {
+            return response()->json([
+                'error' => 'Folder not found or unauthorized'
+            ], 404);
+        }
+
+        $folder->delete();
+
         return response()->json([
-            'error' => 'Folder not found or unauthorized'
-        ], 404);
+            'message' => 'Folder deleted successfully'
+        ]);
     }
-
-    $folder->delete();
-
-    return response()->json([
-        'message' => 'Folder deleted successfully'
-    ]);
-}
-
 }

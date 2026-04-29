@@ -92,22 +92,22 @@ class AuthController extends Controller
     /**
      * Get the authenticated user profile.
      */
-  public function userProfile(Request $request)
-{
-    $user = $request->user();
+    public function userProfile(Request $request)
+    {
+        $user = $request->user();
 
-    // ERROR FIX: Agar user nahi mila toh yahin se wapas bhej do
-    if (!$user) {
+        // ERROR FIX: Agar user nahi mila toh yahin se wapas bhej do
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthenticated user. Sahi token provide karein.'
+            ], 401);
+        }
         return response()->json([
-            'status' => 'error',
-            'message' => 'Unauthenticated user. Sahi token provide karein.'
-        ], 401);
+            'status' => 'success',
+            'data'   => $user
+        ], 200);
+
+        // Baqi ka code same rahega...
     }
-    return response()->json([
-        'status' => 'success',
-        'data'   => $user
-    ], 200);
-    
-    // Baqi ka code same rahega...
-}
 }

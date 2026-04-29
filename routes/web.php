@@ -12,5 +12,5 @@ Route::get('/register', function () {
 
 Route::get('/dashboard', function(){
     return view('index');
-})->name('deshbored');
+})->name('dashboard')->middleware('auth');
 
